@@ -1,6 +1,6 @@
 # <img src="/Payload-Byte-logo.jpg" width="140" valign="middle" alt="Scapy" />&nbsp; Payload-Byte
 
 
-Paylaod-Byte is a tool for or extracting and labeling packet capture (Pcap) file of modern intrusion detection datasets
+Payload-Byte is a tool for or extracting and labeling packet capture (Pcap) files of modern network intrusion detection datasets
 
 
