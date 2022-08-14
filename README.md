@@ -10,6 +10,9 @@ The function of this tool is to provide a standardized baseline for extracting a
 ## Processed Datasets
 For the ease of future researchers, we have included the processed and labeled payload data of two widely utilized network intrusion detection datasets. They are available under `Data` Folder.
 
+* UNSW-NB15
+* CIC-IDS2017
+
 ## Usage 
 
 
