@@ -65,12 +65,12 @@ def pipeline(in_dir,out_dir,dataset,processed_csv_file):
             logging.info("Labeling Completed .......; Initiating Combining and Processing of Labeled Files")
             
             a=[]
-            for x in range(1,54): ## 22-1-2015 have 53 pcap files
+            for x in range(1,2): ## 22-1-2015 have 53 pcap files
                 a.append(output_file+"labelled_pcap_csv_"+str(x)+".csv")
                 
             in_file=[]
             output_file=out_dir+"/Labelled_pcap_file/17-2-1015/"
-            for x in range(1,28): ## 17-2-2015 have 27 pcap files
+            for x in range(1,2): ## 17-2-2015 have 27 pcap files
                 in_file.append(output_file+"labelled_pcap_csv_"+str(x)+".csv")
             in_file=in_file+a
             out_path=out_dir+"/Labelled_pcap_file/"
@@ -92,6 +92,12 @@ def pipeline(in_dir,out_dir,dataset,processed_csv_file):
             df_payload.dsport=df_payload.dsport.astype('int32')
             df_payload.sport=df_payload.sport.astype('int32')
             df_payload.total_len=df_payload.total_len.astype('int32')
+            df_payload.pop('frame_num')
+            df_payload.pop('stime')
+            df_payload.pop('protocol_s')
+            df_payload.pop('proto')
+            df_payload.pop('dur')
+            df_payload.pop('label')
             
             final_out=out_dir+"/Labelled_pcap_file/Final_Labeled_and_processed/"
             isExist=os.path.exists(final_out)
@@ -102,6 +108,7 @@ def pipeline(in_dir,out_dir,dataset,processed_csv_file):
             df_payload.to_csv(final,index=False)
             
             logging.info("Process Completed ...................")
+            return df_payload
               
             
     elif dataset=="CICIDS":
@@ -170,9 +177,65 @@ def pipeline(in_dir,out_dir,dataset,processed_csv_file):
             isExist=os.path.exists(final_out)
             if not isExist:
                 os.makedirs(final_out)
-                
+            
+            df_payload.rename(columns = {'label':'attack_cat'}, inplace = True)
             final=final_out+"combined_labelled_cleaned_sorted_pcap_csv.csv"
             logging.info("Exporting Finalized Version of Data .............")
             df_payload.to_csv(final,index=False)
             logging.info("Process Completed ...................")
+            return df_payload
+            
+    else:
+        print("Wrong Input for Dataset. Kindly Chose from UNSW or CICIDS")
+        
+##################################################################################        
+        
+""" Function: Covert Labelled Pcap file's payload data(hex) into byte (int) 
+    Input: Labelled Pcap file Data in panda Dataframe
+    Output: X ---> Payload data in int form in range of 0-255 in 1500 Columns
+            Y ---> Attack Category for each data                          """        
+
+def payload_to_bytes(df,dim):
+#     indexes = np.arange(len(df.index))
+    df_temp = df
+    X = df_temp['payload'].to_numpy().reshape((-1, 1))
+    X = np.apply_along_axis(payload_transform, 1, X, dim)
+    y = np.array(df_temp['label']).reshape((-1, 1))
+    return X, y
+
+def payload_transform(x, dims):
+    byte_array = bytes.fromhex(x[0])
+    byte_lst = list(byte_array)
+    if (len(byte_lst) < dims):
+        output = np.pad(byte_lst, (0, dims-len(byte_lst)), 'constant')
+    else:
+        output = np.array(byte_lst[0:dims].copy())
+    output = np.abs(output.astype('int32'))
+    #output = np.abs(output.astype(float)) / 255
+    #return output.astype(float)
+    return output
+
+
+##################################################################################
+
+def transform(df,out_dir):
+    le = LabelEncoder()
+    df['protocol_m']=le.fit_transform(df['protocol_m'])
+    X_tr,Ytrain =payload_to_bytes(df,1500)
+    X_tr = np.column_stack((X_tr,np.array(df.iloc[:,5])))
+    X_tr = np.column_stack((X_tr,np.array(df.iloc[:,6])))
+    X_tr = np.column_stack((X_tr,np.array(df.iloc[:,4])))
+    X_tr = np.column_stack((X_tr,np.array(df.iloc[:,8])))
+    name=[]
+    for x in range(1,1501):
+        name.append("payload_byte_"+str(x))
+    name.append("ttl")
+    name.append("total_len")
+    name.append("protocol")
+    name.append("t_delta")
+    final = pd.DataFrame(X_tr, columns=name)
+    final['label']=Ytrain
+    final.to_csv(out_dir+"Converted_data.csv",index=False)
+    return final
+    
       
