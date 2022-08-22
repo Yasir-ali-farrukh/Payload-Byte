@@ -1,4 +1,4 @@
-from functions.Optimized_Parser_Labelling import *
+from Functions.Optimized_Parser_Labelling import *
 import os
 import pandas as pd
 import numpy as np
