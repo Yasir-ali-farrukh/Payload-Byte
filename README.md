@@ -18,6 +18,6 @@ For the ease of future researchers, we have included the processed and labeled p
 <p align="justify"> There are two different ways through which results can be generated completely. </p>
 
 1. The first one is using `Pipeline.ipynb` notebook which is a pipeline in which you just need to specify the directories of PCAP files and CSV files. Rest will be computed automatically. **Note:** For this approach, you should have enough space in your drive.  
-2. The other appraoch is to utilize the functions seperately which is being illustrated in `Individual approach` folder.
+2. The other appraoch is to utilize the functions seperately which is being illustrated in `Individual_approach` folder.
 
 
