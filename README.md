@@ -21,14 +21,16 @@ For the ease of future researchers, we have included the processed and labeled p
 2. The other appraoch is to utilize the functions seperately which is being illustrated in `Individual_approach` folder.
 
 ## Citation 
- If you are using our tool, kindly cite our related paper which outlines the details of the tools and its processing. 
+ If you are using our tool, kindly cite our related  [paper](https://www.techrxiv.org/articles/preprint/Payload-Byte_A_Tool_for_Extracting_and_Labeling_Packet_Capture_Files_of_Modern_Network_Intrusion_Detection_Datasets/20714221) which outlines the details of the tools and its processing. 
  
->@article{Payload,  
->author = "Yasir Ali Farrukh and Irfan Khan and Syed Wali and David Bierbrauer and Nathaniel Bastian",  
->title = "{Payload-Byte: A Tool for Extracting and Labeling Packet Capture Files of Modern Network Intrusion Detection Datasets}",  
->year = "2022",  
->month = "9",  
->url = "https://www.techrxiv.org/articles/preprint/Payload-Byte_A_Tool_for_Extracting_and_Labeling_Packet_Capture_Files_of_Modern_Network_Intrusion_Detection_Datasets/20714221",  
->doi = "10.36227/techrxiv.20714221.v1"  
->}
+ ```yaml
+@article{Payload,  
+author = "Yasir Ali Farrukh and Irfan Khan and Syed Wali and David Bierbrauer and Nathaniel Bastian",  
+title = "{Payload-Byte: A Tool for Extracting and Labeling Packet Capture Files of Modern Network Intrusion Detection Datasets}",  
+year = "2022",  
+month = "9",  
+url = "https://www.techrxiv.org/articles/preprint/Payload-Byte_A_Tool_for_Extracting_and_Labeling_Packet_Capture_Files_of_Modern_Network_Intrusion_Detection_Datasets/20714221",  
+doi = "10.36227/techrxiv.20714221.v1"  
+}
+```
  
