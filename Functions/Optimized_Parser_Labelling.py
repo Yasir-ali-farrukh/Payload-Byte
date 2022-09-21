@@ -256,37 +256,76 @@ def label_CICIDS(pcap_csv,CICIDS_csv,output_file,file_num):
         df_pcap_csv=pd.read_csv(pcap_file,index_col=0)
         df_pcap_csv=df_pcap_csv.sort_values(by='stime')
         
-        stime=df_pcap_csv.stime[0]
-        ltime=int(df_pcap_csv.stime.tail(1))
-        df_pcap_csv.drop(columns=['frame_num','stime','ltime','protocol_s'],inplace=True)
+
+        if file_num==1:
+            stime=df_pcap_csv.stime[0]
+            ltime=int(df_pcap_csv.stime.tail(1))
+            df_pcap_csv.drop(columns=['frame_num','stime','ltime','protocol_s'],inplace=True)
+
+            df_red=df_CICIDS_csv[(df_CICIDS_csv['stime']>=stime) & (df_CICIDS_csv['stime']<=ltime)]
+
+            combine=df_pcap_csv.merge(df_red, left_on=['srcip','dstip','dsport','sport','protocol_m'], right_on=['srcip','dstip','dsport','sport','protocol_m'])
+            combine.drop_duplicates(inplace=True)            
         
-        df_red=df_CICIDS_csv[(df_CICIDS_csv['stime']>=stime) & (df_CICIDS_csv['stime']<=ltime)]
         
-        combine=df_pcap_csv.merge(df_red, left_on=['srcip','dstip','dsport','sport','protocol_m'], right_on=['srcip','dstip','dsport','sport','protocol_m'])
-        combine.drop_duplicates(inplace=True)
-        
-        if file_num==2:
+        elif file_num==2:
+            
+            stime=df_pcap_csv.stime[0]
+            ltime=int(df_pcap_csv.stime.tail(1))
+            df_pcap_csv.drop(columns=['frame_num','stime','ltime','protocol_s'],inplace=True)
+            df_red=df_CICIDS_csv[(df_CICIDS_csv['stime']>=stime) & (df_CICIDS_csv['stime']<=ltime)]
+            combine=df_pcap_csv.merge(df_red, left_on=['srcip','dstip','dsport','sport','protocol_m'], right_on=['srcip','dstip','dsport','sport','protocol_m'])
+            combine.drop_duplicates(inplace=True)  
+            
             combine.drop(combine[(combine.stime>=1499177940)&(combine.stime<=1499181660)&(combine.label=='BENIGN')].index,inplace=True)
             combine.drop(combine[(combine.stime>=1499194800)&(combine.stime<=1499198400)&(combine.label=='BENIGN')].index,inplace=True)
+            
         elif file_num==3:
+            
+            stime=df_pcap_csv.stime[0]
+            ltime=int(1499286720) ## '05/07/2017 15:32:00' (Since this time doesnt exist in PCAP, therefore mitigating its issue)
+            df_pcap_csv.drop(columns=['frame_num','stime','ltime','protocol_s'],inplace=True)
+            df_red=df_CICIDS_csv[(df_CICIDS_csv['stime']>=stime) & (df_CICIDS_csv['stime']<=ltime)]
+            combine=df_pcap_csv.merge(df_red, left_on=['srcip','dstip','dsport','sport','protocol_m'], right_on=['srcip','dstip','dsport','sport','protocol_m'])
+            combine.drop_duplicates(inplace=True) 
+            
             combine.drop(combine[(combine.stime>=1499266020)&(combine.stime<=1499267400)&(combine.label=='BENIGN')].index,inplace=True)
             combine.drop(combine[(combine.stime>=1499267640)&(combine.stime<=1499268900)&(combine.label=='BENIGN')].index,inplace=True)
             combine.drop(combine[(combine.stime>=1499269380)&(combine.stime<=1499270400)&(combine.label=='BENIGN')].index,inplace=True)
             combine.drop(combine[(combine.stime>=1499271000)&(combine.stime<=1499271780)&(combine.label=='BENIGN')].index,inplace=True)
             combine.drop(combine[(combine.stime>=1499285520)&(combine.stime<=1499286720)&(combine.label=='BENIGN')].index,inplace=True)
+            
         elif file_num==4:
+            
+            stime=df_pcap_csv.stime[0]
+            ltime=int(df_pcap_csv.stime.tail(1))
+            df_pcap_csv.drop(columns=['frame_num','stime','ltime','protocol_s'],inplace=True)
+            df_red=df_CICIDS_csv[(df_CICIDS_csv['stime']>=stime) & (df_CICIDS_csv['stime']<=ltime)]
+            combine=df_pcap_csv.merge(df_red, left_on=['srcip','dstip','dsport','sport','protocol_m'], right_on=['srcip','dstip','dsport','sport','protocol_m'])
+            combine.drop_duplicates(inplace=True) 
+            
             combine.drop(combine[(combine.stime>=1499371200)&(combine.stime<=1499373900)&(combine.label=='BENIGN')].index,inplace=True)
             combine.drop(combine[(combine.stime>=1499369400)&(combine.stime<=1499369700)&(combine.label=='BENIGN')].index,inplace=True)
             combine.drop(combine[(combine.stime>=1499355600)&(combine.stime<=1499355720)&(combine.label=='BENIGN')].index,inplace=True)
             combine.drop(combine[(combine.stime>=1499354100)&(combine.stime<=1499355300)&(combine.label=='BENIGN')].index,inplace=True)
             combine.drop(combine[(combine.stime>=1499350800)&(combine.stime<=1499353200)&(combine.label=='BENIGN')].index,inplace=True)
+            
         elif file_num==5:
-            combine.drop(combine[(combine.stime>=1499453700 )&(combine.stime<=1499459400)&(combine.label=='BENIGN')].index,inplace=True)
+            
+            stime=df_pcap_csv.stime[0]
+            ltime=int(1499462160) ## 07/07/2017 16:16:00 (Since this time doesnt exist in PCAP, therefore mitigating its issue)
+            df_pcap_csv.drop(columns=['frame_num','stime','ltime','protocol_s'],inplace=True)
+            df_red=df_CICIDS_csv[(df_CICIDS_csv['stime']>=stime) & (df_CICIDS_csv['stime']<=ltime)]
+            combine=df_pcap_csv.merge(df_red, left_on=['srcip','dstip','dsport','sport','protocol_m'], right_on=['srcip','dstip','dsport','sport','protocol_m'])
+            combine.drop_duplicates(inplace=True) 
+            
+            combine.drop(combine[(combine.stime>=1499460960 )&(combine.stime<=1499462160 )&(combine.label=='BENIGN')].index,inplace=True)
             combine.drop(combine[(combine.stime>=1499453700 )&(combine.stime<=1499459400)&(combine.label=='BENIGN')].index,inplace=True)
             combine.drop(combine[(combine.stime>=1499439720 )&(combine.stime<=1499443320)&(combine.label=='BENIGN')].index,inplace=True)
         
         print("*********Labelled_File_%s_Protocols*************"%file_num)
         print(combine.protocol_m.value_counts())
+        print(combine.shape)
         print("************************************************")
         
         csv_out=output_file+"labelled_pcap_csv_"+str(file_num)+".csv"
