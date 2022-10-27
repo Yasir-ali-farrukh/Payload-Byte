@@ -3,19 +3,20 @@ import os
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import logging
 
 
 def pipeline(in_dir, out_dir, dataset, processed_csv_file):
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s -%(message)s")
     if dataset == "UNSW":
         logging.info("Checking directory for files ......")
-        check = os.path.exists(in_dir + "/pcap 22-1-2015/1.pcap")
+        check = os.path.exists(in_dir + "/pcaps 22-1-2015/1.pcap")
         if not check:
             print("Pcap Files not Found in the current folder. Please Enter Correct Directory")
         else:
             logging.info("Files found. Initiating PCAP Parsing.......")
             pcap_file_list = []
-            pcap_jan = in_dir + "/pcap 22-1-2015/"
+            pcap_jan = in_dir + "/pcaps 22-1-2015/"
             for x in range(1, 54):  ## 22-1-2015 have 53 pcap files
                 pcap_file_list.append(pcap_jan + str(x) + ".pcap")
             out_file = out_dir + "/pcap_file_csv_parser/22-1-1015/"
@@ -27,7 +28,7 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
 
             logging.info("Parsing 17-2-2015 Files .........")
             pcap_file_list = []
-            pcap_feb = in_dir + "/pcap 17-2-2015/"
+            pcap_feb = in_dir + "/pcaps 17-2-2015/"
             for x in range(1, 28):  ## 17-2-2015 have 27 pcap files
                 pcap_file_list.append(pcap_feb + str(x) + ".pcap")
             out_file = out_dir + "/pcap_file_csv_parser/17-2-1015/"
@@ -47,7 +48,7 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
             isExist = os.path.exists(output_file)
             if not isExist:
                 os.makedirs(output_file)
-            label(pcap_csv, processed_csv_file, output_file, 1)
+            label_UNSW(pcap_csv, processed_csv_file, output_file, 1)
 
             ### Labeling 22-1-2015
             out_file = out_dir + "/pcap_file_csv_parser/22-1-1015/"
@@ -59,22 +60,22 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
             isExist = os.path.exists(output_file)
             if not isExist:
                 os.makedirs(output_file)
-            label(pcap_csv, processed_csv_file, output_file, 1)
+            label_UNSW(pcap_csv, processed_csv_file, output_file, 1)
 
             logging.info("Labeling Completed .......; Initiating Combining and Processing of Labeled Files")
 
             a = []
-            for x in range(1, 2):  ## 22-1-2015 have 53 pcap files
+            for x in range(1, 54):  ## 22-1-2015 have 53 pcap files
                 a.append(output_file + "labelled_pcap_csv_" + str(x) + ".csv")
 
             in_file = []
             output_file = out_dir + "/Labelled_pcap_file/17-2-1015/"
-            for x in range(1, 2):  ## 17-2-2015 have 27 pcap files
+            for x in range(1, 28):  ## 17-2-2015 have 27 pcap files
                 in_file.append(output_file + "labelled_pcap_csv_" + str(x) + ".csv")
             in_file = in_file + a
             out_path = out_dir + "/Labelled_pcap_file/"
             logging.info("Combining all Files ........")
-            df_payload = combine(in_file, out_path)
+            df_payload = combine_UNSW(in_file, out_path)
 
             logging.info("Total Shape of Combined Data Before Processing is: %s", df_payload.shape)
             logging.info("Removing Duplicates ......")
@@ -93,7 +94,6 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
             df_payload.total_len = df_payload.total_len.astype("int32")
             df_payload.pop("frame_num")
             df_payload.pop("stime")
-            df_payload.pop("protocol_s")
             df_payload.pop("proto")
             df_payload.pop("dur")
             df_payload.pop("label")
@@ -127,10 +127,9 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
             logging.info("Parsing PCAP Files .........")
             pcap_parser(pcap_file_list, out_file, 1)
             logging.info("Parsing Completed.......")
-            ## Labeling
 
             pcap_csv = []
-            for x in range(1, 6):  ## Five days files
+            for x in range(1, 6):
                 pcap_csv.append(out_file + "pcap_csv_" + str(x) + ".csv")
             logging.info("Labeling PCAP Files .........")
             output_file = out_dir + "/Labelled_pcap_file/"
@@ -142,7 +141,7 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
             logging.info("Labeling Completed .......; Initiating Combining and Processing of Labeled Files")
 
             in_file = []
-            for x in range(1, 6):  ## Hve 5 days pcap files
+            for x in range(1, 6):
                 in_file.append(output_file + "labelled_pcap_csv_" + str(x) + ".csv")
 
             logging.info("Combining all Files ........")
