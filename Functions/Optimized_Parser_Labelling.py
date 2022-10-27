@@ -3,6 +3,7 @@ import numpy as np
 import logging
 import pandas as pd
 from datetime import datetime
+from datetime import timezone
 import os
 
 """ Function: Extract information from Pcap files and saves into a .CSV format
@@ -243,7 +244,7 @@ def label_CICIDS(pcap_csv,CICIDS_csv,output_file,file_num):
     df_CICIDS_csv.rename(columns={'Timestamp': 'stime', 'Source IP': 'srcip', 'Destination IP': 'dstip', 'Destination Port': 'dsport', 'Source Port': 'sport', 'Label': 'label','Protocol': 'protocol_m'}, inplace=True)
     
     df_CICIDS_csv['stime']=df_CICIDS_csv['stime'].apply(lambda x: (datetime.strptime(x, '%d/%m/%Y %H:%M')) if x.count(':') == 1 else  (datetime.strptime(x, '%d/%m/%Y %H:%M:%S')))
-    df_CICIDS_csv['stime']=df_CICIDS_csv['stime'].apply(lambda x: int((datetime(x.year,x.month,x.day,(x.hour+12),x.minute,x.second)).timestamp()) if (x.hour>=1)&(x.hour<=7) else int((datetime(x.year,x.month,x.day,x.hour,x.minute,x.second)).timestamp()) )
+    df_CICIDS_csv['stime']=df_CICIDS_csv['stime'].apply(lambda x: int((datetime(x.year,x.month,x.day,(x.hour+15),x.minute,x.second,tzinfo=timezone.utc)).timestamp()) if (x.hour>=1)&(x.hour<=7) else int((datetime(x.year,x.month,x.day,(x.hour+3),x.minute,x.second,tzinfo=timezone.utc)).timestamp()) )
     df_CICIDS_csv=df_CICIDS_csv.sort_values(by='stime')
     
     df_CICIDS_csv['protocol_m'] = df_CICIDS_csv['protocol_m'].astype(str)
@@ -277,23 +278,23 @@ def label_CICIDS(pcap_csv,CICIDS_csv,output_file,file_num):
             combine=df_pcap_csv.merge(df_red, left_on=['srcip','dstip','dsport','sport','protocol_m'], right_on=['srcip','dstip','dsport','sport','protocol_m'])
             combine.drop_duplicates(inplace=True)  
             
-            combine.drop(combine[(combine.stime>=1499177940)&(combine.stime<=1499181660)&(combine.label=='BENIGN')].index,inplace=True)
-            combine.drop(combine[(combine.stime>=1499194800)&(combine.stime<=1499198400)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499170800)&(combine.stime<=1499174400)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499187600)&(combine.stime<=1499191200)&(combine.label=='BENIGN')].index,inplace=True)
             
         elif file_num==3:
             
             stime=df_pcap_csv.stime[0]
-            ltime=int(1499286720) ## '05/07/2017 15:32:00' (Since this time doesnt exist in PCAP, therefore mitigating its issue)
+            ltime=int(df_pcap_csv.stime.tail(1)) 
             df_pcap_csv.drop(columns=['frame_num','stime','ltime','protocol_s'],inplace=True)
             df_red=df_CICIDS_csv[(df_CICIDS_csv['stime']>=stime) & (df_CICIDS_csv['stime']<=ltime)]
             combine=df_pcap_csv.merge(df_red, left_on=['srcip','dstip','dsport','sport','protocol_m'], right_on=['srcip','dstip','dsport','sport','protocol_m'])
             combine.drop_duplicates(inplace=True) 
             
-            combine.drop(combine[(combine.stime>=1499266020)&(combine.stime<=1499267400)&(combine.label=='BENIGN')].index,inplace=True)
-            combine.drop(combine[(combine.stime>=1499267640)&(combine.stime<=1499268900)&(combine.label=='BENIGN')].index,inplace=True)
-            combine.drop(combine[(combine.stime>=1499269380)&(combine.stime<=1499270400)&(combine.label=='BENIGN')].index,inplace=True)
-            combine.drop(combine[(combine.stime>=1499271000)&(combine.stime<=1499271780)&(combine.label=='BENIGN')].index,inplace=True)
-            combine.drop(combine[(combine.stime>=1499285520)&(combine.stime<=1499286720)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499278320)&(combine.stime<=1499279520)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499263800)&(combine.stime<=1499264580)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499262180)&(combine.stime<=1499263200)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499260440)&(combine.stime<=1499261700)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499258820)&(combine.stime<=1499260200)&(combine.label=='BENIGN')].index,inplace=True)
             
         elif file_num==4:
             
@@ -304,24 +305,24 @@ def label_CICIDS(pcap_csv,CICIDS_csv,output_file,file_num):
             combine=df_pcap_csv.merge(df_red, left_on=['srcip','dstip','dsport','sport','protocol_m'], right_on=['srcip','dstip','dsport','sport','protocol_m'])
             combine.drop_duplicates(inplace=True) 
             
-            combine.drop(combine[(combine.stime>=1499371200)&(combine.stime<=1499373900)&(combine.label=='BENIGN')].index,inplace=True)
-            combine.drop(combine[(combine.stime>=1499369400)&(combine.stime<=1499369700)&(combine.label=='BENIGN')].index,inplace=True)
-            combine.drop(combine[(combine.stime>=1499355600)&(combine.stime<=1499355720)&(combine.label=='BENIGN')].index,inplace=True)
-            combine.drop(combine[(combine.stime>=1499354100)&(combine.stime<=1499355300)&(combine.label=='BENIGN')].index,inplace=True)
-            combine.drop(combine[(combine.stime>=1499350800)&(combine.stime<=1499353200)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499343600)&(combine.stime<=1499346000)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499346900)&(combine.stime<=1499348100)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499348400)&(combine.stime<=1499348520)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499362380)&(combine.stime<=1499362500)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499364240)&(combine.stime<=1499366700)&(combine.label=='BENIGN')].index,inplace=True)
             
         elif file_num==5:
             
             stime=df_pcap_csv.stime[0]
-            ltime=int(1499462160) ## 07/07/2017 16:16:00 (Since this time doesnt exist in PCAP, therefore mitigating its issue)
+            ltime=int(df_pcap_csv.stime.tail(1))
             df_pcap_csv.drop(columns=['frame_num','stime','ltime','protocol_s'],inplace=True)
             df_red=df_CICIDS_csv[(df_CICIDS_csv['stime']>=stime) & (df_CICIDS_csv['stime']<=ltime)]
             combine=df_pcap_csv.merge(df_red, left_on=['srcip','dstip','dsport','sport','protocol_m'], right_on=['srcip','dstip','dsport','sport','protocol_m'])
             combine.drop_duplicates(inplace=True) 
             
-            combine.drop(combine[(combine.stime>=1499460960 )&(combine.stime<=1499462160 )&(combine.label=='BENIGN')].index,inplace=True)
-            combine.drop(combine[(combine.stime>=1499453700 )&(combine.stime<=1499459400)&(combine.label=='BENIGN')].index,inplace=True)
-            combine.drop(combine[(combine.stime>=1499439720 )&(combine.stime<=1499443320)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499432520 )&(combine.stime<=1499436120)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499446500 )&(combine.stime<=1499452200)&(combine.label=='BENIGN')].index,inplace=True)
+            combine.drop(combine[(combine.stime>=1499453760 )&(combine.stime<=1499454960)&(combine.label=='BENIGN')].index,inplace=True)
         
         print("*********Labelled_File_%s_Protocols*************"%file_num)
         print(combine.protocol_m.value_counts())
@@ -331,6 +332,10 @@ def label_CICIDS(pcap_csv,CICIDS_csv,output_file,file_num):
         csv_out=output_file+"labelled_pcap_csv_"+str(file_num)+".csv"
         combine.to_csv(csv_out,index=False)
         file_num+=1
+        combine=0
+        df_red=0
+        df_pcap_csv=0
+
 
 
     
