@@ -162,23 +162,13 @@ def pcap_parser(pcap_files, out_file_csv, file_num):
                 "payload",
             ],
         )
-        # Generating t_delta Column
-        out["t_delta"] = out["stime"] - out["stime"].shift(1)
-        out.t_delta[0] = 0
-        out["t_delta"] = out["t_delta"].astype(float)
-        out["ltime"] = out["stime"] + out["t_delta"]
 
-        out.ltime = out.ltime.astype(float)
-        out["ltime"] = out["ltime"].round()
-        out.ltime = out.ltime.astype(int)
-        out.stime = out.stime.astype(float)
-        out["stime"] = out["stime"].round()
-        out.stime = out.stime.astype(int)
+        out["stime"] = out["stime"].astype(float).round().astype(int)
 
         logging.info("Exporting CSV File#%s", file_num)
         csv_file = out_file_csv + "pcap_csv_" + str(file_num) + ".csv"
         os.makedirs(out_file_csv, exist_ok=True)
-        out.to_csv(csv_file)
+        out.to_csv(csv_file, index=False)
         print(out.protocol_m.value_counts())
         file_num += 1
 
@@ -196,10 +186,13 @@ def pcap_parser(pcap_files, out_file_csv, file_num):
 def label_UNSW(pcap_csv, UNSW_csv, output_file, file_num):
     logging.info("Reading Pre-processed UNSW CSV_file...")
     df_pre = pd.read_csv(UNSW_csv, low_memory=False)
-    df_pre = df_pre[
-        ["stime", "ltime", "srcip", "dstip", "dsport", "sport", "sttl", "proto", "dur", "attack_cat", "label"]
-    ]
+    df_pre = df_pre[["stime", "ltime", "dur", "srcip", "dstip", "dsport", "sport", "sttl", "proto", "attack_cat", "label"]]
 
+    # Change column name to match pcaps
+    df_pre.rename(columns={"proto": "protocol_m"}, inplace=True)
+    # Calculate the max of ltime and (stime + dur) because they aren't consistent
+    df_pre["ltime2"] = (df_pre.stime + df_pre.dur).round().astype("int32")
+    df_pre["ltime_max"] = df_pre[["ltime", "ltime2"]].max(axis=1)
     # Convert any hex values to decimal
     df_pre.loc[:, "dsport"] = df_pre.dsport.apply(lambda x: int(x, base=16) if x.startswith("0x") else x)
     df_pre.loc[:, "sport"] = df_pre.sport.apply(lambda x: int(x, base=16) if x.startswith("0x") else x)
@@ -212,32 +205,52 @@ def label_UNSW(pcap_csv, UNSW_csv, output_file, file_num):
     # Change df_pre datatypes
     df_pre.dsport = d
     df_pre.sport = s
+    # PCAPs for ICMP are all 0 port but flows have other values, so reset all the flows to zero
+    df_pre.loc[df_pre.protocol_m == "icmp", ["sport", "dsport"]] = 0
 
     for pcap_file in pcap_csv:
         logging.info("Reading Parsed_Pcap_file_%s...", file_num)
         df_pcap_csv = pd.read_csv(pcap_file, index_col=0, low_memory=False)
         stime = df_pcap_csv.stime[0]
         ltime = int(df_pcap_csv.stime.tail(1))
-        df_red = df_pre[(df_pre["stime"] >= stime) & (df_pre["stime"] <= ltime)]
-        combine = df_pcap_csv.merge(
-            df_red,
-            left_on=["stime", "ltime", "srcip", "dstip", "dsport", "sport", "sttl", "protocol_m"],
-            right_on=["stime", "ltime", "srcip", "dstip", "dsport", "sport", "sttl", "proto"],
+        df_flow = df_pre[(df_pre["stime"] >= stime) & (df_pre["stime"] <= ltime)]
+
+        # Merge based on the shared columns
+        combine1 = pd.merge(df_pcap_csv, df_flow, how="left", on=["srcip", "dstip", "dsport", "sport", "protocol_m"], suffixes=["", "_flow"])
+        # Invert the dest/source to capture return traffic
+        combine2 = pd.merge(
+            df_pcap_csv,
+            df_flow,
+            how="left",
+            left_on=["srcip", "dstip", "dsport", "sport", "protocol_m"],
+            right_on=["dstip", "srcip", "sport", "dsport", "protocol_m"],
+            suffixes=["", "_flow"],
+        )
+        combine = pd.concat([combine1, combine2])
+
+        # Remove any excess columns
+        combine.drop(
+            columns=["frame_num", "ltime", "sttl_flow", "dur", "ltime2", "srcip_flow", "dstip_flow", "dsport_flow", "sport_flow"], inplace=True
         )
 
-        a = df_red[(df_red.proto == "icmp")]
-        b = df_pcap_csv[(df_pcap_csv.protocol_m == "icmp")]
-        c = b.merge(
-            a,
-            left_on=["stime", "ltime", "srcip", "dstip", "sttl", "protocol_m"],
-            right_on=["stime", "ltime", "srcip", "dstip", "sttl", "proto"],
+        # Drop any packets that did not match a flow
+        combine = combine[~combine.label.isna()]
+
+        # Drop any rows that do not have match flow times
+        combine = combine[(combine["stime_flow"] <= combine["stime"]) & (combine["stime"] <= combine["ltime_max"])]
+
+        # Merge any duplicate packets with different attack categories
+        combine = (
+            combine.groupby(["stime", "srcip", "sport", "dstip", "dsport", "protocol_m", "payload", "total_len", "label"])["attack_cat"]
+            .apply(set)
+            .apply(", ".join)
+            .reset_index()
         )
-        c.drop(columns=["dsport_y", "sport_y"], inplace=True)
-        c.rename(columns={"dsport_x": "dsport", "sport_x": "sport"}, inplace=True)
-        combine = pd.concat([combine, c], axis=0, ignore_index=True)
+
+        combine.drop_duplicates(inplace=True)
 
         print("*********Labelled_File_%s_Protocols*************" % file_num)
-        print(combine.proto.value_counts())
+        print(combine.protocol_m.value_counts())
         print("************************************************")
 
         csv_out = output_file + "labelled_pcap_csv_" + str(file_num) + ".csv"
@@ -248,22 +261,16 @@ def label_UNSW(pcap_csv, UNSW_csv, output_file, file_num):
 def combine_UNSW(in_file_path, out_path):
     combine = pd.DataFrame(
         columns=[
-            "frame_num",
             "stime",
             "srcip",
             "sport",
             "dstip",
             "dsport",
             "protocol_m",
-            "sttl",
-            "total_len",
             "payload",
-            "t_delta",
-            "ltime",
-            "proto",
-            "dur",
-            "attack_cat",
+            "total_len",
             "label",
+            "attack_cat",
         ]
     )
     for files in in_file_path:
@@ -287,14 +294,13 @@ def combine_CICIDS(in_file_path, out_path):
             "sttl",
             "total_len",
             "payload",
-            "t_delta",
             "stime",
             "label",
         ]
     )
     for files in in_file_path:
         df = pd.read_csv(files)
-        combine = combine.append(df, ignore_index=True)
+        combine = pd.concat([combine, df], axis=0, ignore_index=True)
         print(combine.shape)
     csv_out = out_path + "combined_labelled_pcap_csv.csv"
     logging.info("Exporting_combined_csv_file....")
@@ -351,7 +357,7 @@ def label_CICIDS(pcap_csv, CICIDS_csv, output_file, file_num):
     df_pre_csv.rename(columns={"stime": "stime_flow"}, inplace=True)
     for pcap_file in pcap_csv:
         logging.info("Reading Parsed_Pcap_file_%s ......", file_num)
-        # columns=["frame_num","stime","srcip","sport","dstip","dsport","protocol_m","total_len","payload",],
+        # columns=["frame_num","stime","srcip","sport","dstip","dsport","protocol_m", "sttl", "total_len","payload",],
         df_pcap_csv = pd.read_csv(pcap_file, index_col=0)
         df_pcap_csv = df_pcap_csv.sort_values(by="stime")
 
@@ -360,27 +366,32 @@ def label_CICIDS(pcap_csv, CICIDS_csv, output_file, file_num):
         stime = int(df_pcap_csv.head(1).stime) - 60
         ltime = int(df_pcap_csv.tail(1).stime) + 60
 
-        flow = df_pre_csv[(df_pre_csv["stime_flow"] >= stime) & (df_pre_csv["stime_flow"] <= ltime)]
+        df_flow = df_pre_csv[(df_pre_csv["stime_flow"] >= stime) & (df_pre_csv["stime_flow"] <= ltime)]
 
         # Merge based on the shared columns
-        combine = pd.merge(df_pcap_csv, flow, how="left", on=["srcip", "dstip", "dsport", "sport", "protocol_m"])
+        combine1 = pd.merge(df_pcap_csv, df_flow, how="left", on=["srcip", "dstip", "dsport", "sport", "protocol_m"])
+        # Invert the dest/source to capture return traffic
+        combine2 = pd.merge(
+            df_pcap_csv,
+            df_flow,
+            how="left",
+            left_on=["srcip", "dstip", "dsport", "sport", "protocol_m"],
+            right_on=["dstip", "srcip", "sport", "dsport", "protocol_m"],
+            suffixes=["", "_flow"],
+        )
+        combine = pd.concat([combine1, combine2])
         combine.drop_duplicates(inplace=True)
 
         # PCAPs are labeled by actual protocol, but flow only has tcp/udp/other labels.
-        df_pcap_csv["protocol_m"] = df_pcap_csv["protocol_m"].apply(
-            lambda x: x if x == "tcp" or x == "udp" else "other"
-        )
+        df_pcap_csv["protocol_m"] = df_pcap_csv["protocol_m"].apply(lambda x: x if x == "tcp" or x == "udp" else "other")
 
         # Drop any rows that are do not have matching times, stime is measured in seconds but netflow has resolution of only
         # one minute and duration is measured in microseconds
         combine = combine[
-            (combine["stime_flow"] - 60 <= combine["stime"])
-            & (combine["stime"] <= combine["stime_flow"] + 60 + combine["duration"] / 1e6)
+            (combine["stime_flow"] - 60 <= combine["stime"]) & (combine["stime"] <= combine["stime_flow"] + 60 + combine["duration"] / 1e6)
         ]
         combine = (
-            combine.groupby(["stime", "srcip", "dstip", "dsport", "sport", "protocol_m", "payload", "total_len"])[
-                "label"
-            ]
+            combine.groupby(["stime", "srcip", "dstip", "dsport", "sport", "protocol_m", "payload", "total_len", "sttl"])["label"]
             .apply(set)
             .apply(" ".join)
             .reset_index()
