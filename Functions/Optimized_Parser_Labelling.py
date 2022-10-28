@@ -393,7 +393,7 @@ def label_CICIDS(pcap_csv, CICIDS_csv, output_file, file_num):
         combine = (
             combine.groupby(["stime", "srcip", "dstip", "dsport", "sport", "protocol_m", "payload", "total_len", "sttl"])["label"]
             .apply(set)
-            .apply(" ".join)
+            .apply(", ".join)
             .reset_index()
         )
         print("*********Labelled_File_%s_Protocols*************" % file_num)
