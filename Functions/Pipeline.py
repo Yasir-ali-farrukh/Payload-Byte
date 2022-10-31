@@ -87,15 +87,10 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
             df_payload.drop(df_payload[df_payload.payload_int == 0].index, inplace=True)
             df_payload.pop("payload_int")
 
-            df_payload.sort_values(by=["stime", "frame_num"], inplace=True, ignore_index=True)
-            df_payload.sttl = df_payload.sttl.astype("int32")
+            df_payload.sort_values(by=["stime"], inplace=True, ignore_index=True)
             df_payload.dsport = df_payload.dsport.astype("int32")
             df_payload.sport = df_payload.sport.astype("int32")
             df_payload.total_len = df_payload.total_len.astype("int32")
-            df_payload.pop("frame_num")
-            df_payload.pop("stime")
-            df_payload.pop("proto")
-            df_payload.pop("dur")
             df_payload.pop("label")
 
             final_out = out_dir + "/Labelled_pcap_file/Final_Labeled_and_processed/"
@@ -174,7 +169,6 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
             if not isExist:
                 os.makedirs(final_out)
 
-            df_payload.rename(columns={"label": "attack_cat"}, inplace=True)
             final = final_out + "combined_labelled_cleaned_sorted_pcap_csv.csv"
             logging.info("Exporting Finalized Version of Data .............")
             df_payload.to_csv(final, index=False)

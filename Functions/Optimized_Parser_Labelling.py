@@ -241,9 +241,9 @@ def label_UNSW(pcap_csv, UNSW_csv, output_file, file_num):
 
         # Merge any duplicate packets with different attack categories
         combine = (
-            combine.groupby(["stime", "srcip", "sport", "dstip", "dsport", "protocol_m", "payload", "total_len", "label"])["attack_cat"]
+            combine.groupby(["stime", "srcip", "sport", "dstip", "dsport", "protocol_m", "payload", "total_len", "sttl", "label"])["attack_cat"]
             .apply(set)
-            .apply(", ".join)
+            .apply(",".join)
             .reset_index()
         )
 
@@ -393,9 +393,13 @@ def label_CICIDS(pcap_csv, CICIDS_csv, output_file, file_num):
         combine = (
             combine.groupby(["stime", "srcip", "dstip", "dsport", "sport", "protocol_m", "payload", "total_len", "sttl"])["label"]
             .apply(set)
-            .apply(", ".join)
+            .apply(",".join)
             .reset_index()
         )
+
+        combine.rename(columns={"label": "attack_cat"}, inplace=True)
+        combine["label"] = 0
+        combine.loc[combine.attack_cat != "BENIGN", "label"] = 1
         print("*********Labelled_File_%s_Protocols*************" % file_num)
         print(combine.protocol_m.value_counts())
         print(combine.shape)
