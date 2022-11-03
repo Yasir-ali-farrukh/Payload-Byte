@@ -44,7 +44,7 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
             for x in range(1, 28):  ## 17-2-2015 have 27 pcap files
                 pcap_csv.append(out_file + "pcap_csv_" + str(x) + ".csv")
             logging.info("Labeling 17-2-2015 Files .........")
-            output_file = out_dir + "/Labelled_pcap_file/17-2-1015/"
+            output_file = out_dir + "/labelled_pcap_file/17-2-1015/"
             isExist = os.path.exists(output_file)
             if not isExist:
                 os.makedirs(output_file)
@@ -56,7 +56,7 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
             for x in range(1, 54):  ## 22-1-2015 have 53 pcap files
                 pcap_csv.append(out_file + "pcap_csv_" + str(x) + ".csv")
             logging.info("Labeling 22-1-2015 Files .............")
-            output_file = out_dir + "/Labelled_pcap_file/22-1-1015/"
+            output_file = out_dir + "/labelled_pcap_file/22-1-1015/"
             isExist = os.path.exists(output_file)
             if not isExist:
                 os.makedirs(output_file)
@@ -66,14 +66,14 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
 
             a = []
             for x in range(1, 54):  ## 22-1-2015 have 53 pcap files
-                a.append(output_file + "labelled_pcap_csv_" + str(x) + ".csv")
+                a.append(output_file + "pcap_" + str(x) + ".csv")
 
             in_file = []
-            output_file = out_dir + "/Labelled_pcap_file/17-2-1015/"
+            output_file = out_dir + "/labelled_pcap_file/17-2-1015/"
             for x in range(1, 28):  ## 17-2-2015 have 27 pcap files
-                in_file.append(output_file + "labelled_pcap_csv_" + str(x) + ".csv")
+                in_file.append(output_file + "pcap_" + str(x) + ".csv")
             in_file = in_file + a
-            out_path = out_dir + "/Labelled_pcap_file/"
+            out_path = out_dir + "/labelled_pcap_file/"
             logging.info("Combining all Files ........")
             df_payload = combine_UNSW(in_file, out_path)
 
@@ -93,15 +93,16 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
             df_payload.total_len = df_payload.total_len.astype("int32")
             df_payload.pop("label")
 
-            final_out = out_dir + "/Labelled_pcap_file/Final_Labeled_and_processed/"
+            final_out = out_dir + "/labelled_pcap_file/"
             isExist = os.path.exists(final_out)
             if not isExist:
                 os.makedirs(final_out)
-            final = final_out + "combined_labelled_cleaned_sorted_pcap_csv.csv"
+            final = final_out + "combined_labelled_cleaned_sorted_pcap.csv"
             logging.info("Exporting Finalized Version of Data .............")
             df_payload.to_csv(final, index=False)
 
             logging.info("Process Completed ...................")
+            logging.info(f"Final output CSV saved at {final}")
             return df_payload
 
     elif dataset == "CICIDS":
@@ -127,7 +128,7 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
             for x in range(1, 6):
                 pcap_csv.append(out_file + "pcap_csv_" + str(x) + ".csv")
             logging.info("Labeling PCAP Files .........")
-            output_file = out_dir + "/Labelled_pcap_file/"
+            output_file = out_dir + "/labelled_pcap_file/"
             isExist = os.path.exists(output_file)
             if not isExist:
                 os.makedirs(output_file)
@@ -137,7 +138,7 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
 
             in_file = []
             for x in range(1, 6):
-                in_file.append(output_file + "labelled_pcap_csv_" + str(x) + ".csv")
+                in_file.append(output_file + "pcap_" + str(x) + ".csv")
 
             logging.info("Combining all Files ........")
             df_payload = combine_CICIDS(in_file, output_file)
@@ -164,15 +165,16 @@ def pipeline(in_dir, out_dir, dataset, processed_csv_file):
             df_payload.sport = df_payload.sport.astype("int32")
             df_payload.total_len = df_payload.total_len.astype("int32")
             logging.info("Total Shape of Combined Data After Processing is: %s", df_payload.shape)
-            final_out = out_dir + "/Labelled_pcap_file/Final_Labeled_and_processed/"
+            final_out = out_dir + "/labelled_pcap_file/"
             isExist = os.path.exists(final_out)
             if not isExist:
                 os.makedirs(final_out)
 
-            final = final_out + "combined_labelled_cleaned_sorted_pcap_csv.csv"
+            final = final_out + "combined_labelled_cleaned_sorted_pcap.csv"
             logging.info("Exporting Finalized Version of Data .............")
             df_payload.to_csv(final, index=False)
             logging.info("Process Completed ...................")
+            logging.info(f"Final output CSV saved at {final}")
             return df_payload
 
     else:
