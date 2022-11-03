@@ -229,9 +229,7 @@ def label_UNSW(pcap_csv, UNSW_csv, output_file, file_num):
         combine = pd.concat([combine1, combine2])
 
         # Remove any excess columns
-        combine.drop(
-            columns=["frame_num", "ltime", "sttl_flow", "dur", "ltime2", "srcip_flow", "dstip_flow", "dsport_flow", "sport_flow"], inplace=True
-        )
+        combine.drop(columns=["ltime", "sttl_flow", "dur", "ltime2", "srcip_flow", "dstip_flow", "dsport_flow", "sport_flow"], inplace=True)
 
         # Drop any packets that did not match a flow
         combine = combine[~combine.label.isna()]
@@ -243,6 +241,8 @@ def label_UNSW(pcap_csv, UNSW_csv, output_file, file_num):
         combine = (
             combine.groupby(["stime", "srcip", "sport", "dstip", "dsport", "protocol_m", "payload", "total_len", "sttl", "label"])["attack_cat"]
             .apply(set)
+            .apply(list)
+            .apply(sorted)
             .apply(",".join)
             .reset_index()
         )
@@ -357,11 +357,9 @@ def label_CICIDS(pcap_csv, CICIDS_csv, output_file, file_num):
     df_pre_csv.rename(columns={"stime": "stime_flow"}, inplace=True)
     for pcap_file in pcap_csv:
         logging.info("Reading Parsed_Pcap_file_%s ......", file_num)
-        # columns=["frame_num","stime","srcip","sport","dstip","dsport","protocol_m", "sttl", "total_len","payload",],
+        # columns=["stime","srcip","sport","dstip","dsport","protocol_m", "sttl", "total_len","payload",],
         df_pcap_csv = pd.read_csv(pcap_file, index_col=0)
         df_pcap_csv = df_pcap_csv.sort_values(by="stime")
-
-        df_pcap_csv.drop(columns=["frame_num"], inplace=True)
 
         stime = int(df_pcap_csv.head(1).stime) - 60
         ltime = int(df_pcap_csv.tail(1).stime) + 60
@@ -393,10 +391,11 @@ def label_CICIDS(pcap_csv, CICIDS_csv, output_file, file_num):
         combine = (
             combine.groupby(["stime", "srcip", "dstip", "dsport", "sport", "protocol_m", "payload", "total_len", "sttl"])["label"]
             .apply(set)
+            .apply(list)
+            .apply(sorted)
             .apply(",".join)
             .reset_index()
         )
-
         combine.rename(columns={"label": "attack_cat"}, inplace=True)
         combine["label"] = 0
         combine.loc[combine.attack_cat != "BENIGN", "label"] = 1
