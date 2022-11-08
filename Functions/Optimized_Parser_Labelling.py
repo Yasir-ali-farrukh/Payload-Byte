@@ -3,22 +3,16 @@ import os
 from datetime import datetime, timedelta
 import traceback
 
-import numpy as np
 import pandas as pd
 import scapy.all as sc
 import scapy
-import sys
-
-""" Function: Extract information from Pcap files and saves into a .CSV format
-    Input: List of Pcap file's directory & File_number (used for labelling the output file)
-    Output: CSV file containing all information from packet"""
-
-# pcap_file= ['E:/UNSW-NB15 Dataset/Pcap-files-17-2-2015/4.pcap','E:/UNSW-NB15 Dataset/Pcap-files-17-2-2015/5.pcap' ..... ]
-## out_file= 'G:/UNSW_result/pcap_file_csv_parser/'
-# file_num= 4 ; Number of file that you are loading like we are giving 4 and 5 pcap file so this number is 4.
-
 
 def pcap_parser(pcap_files, out_file_csv, file_num):
+    """Function: Extract information from Pcap files and saves into a .CSV format
+    Input: pcap_files: List of the PCAP files to be parsed
+           out_file_csv: Directory to output the parsed CSVs
+           file_num: File number that increments to give each labeled CSV a unique name.
+    Output: CSV file containing all information from packet"""
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s -%(message)s")
     for pcap_file in pcap_files:
         logging.info("Reading input file:  %s", pcap_file)
@@ -135,8 +129,7 @@ def pcap_parser(pcap_files, out_file_csv, file_num):
                     print(f.show())
                     return
 
-                temp_list = [packet_counter, epoch, src_ip, sport, dst_ip, dport, proto_m, sttl, total_len, payload]
-                all_rows.append(temp_list)
+                all_rows.append([packet_counter, epoch, src_ip, sport, dst_ip, dport, proto_m, sttl, total_len, payload])
                 packet_counter += 1
                 if packet_counter % 100000 == 0:
                     logging.info(f"Done with {packet_counter} Packets")
@@ -144,7 +137,7 @@ def pcap_parser(pcap_files, out_file_csv, file_num):
                 logging.info(f"Done reading {pcap_file}")
                 break
             except Exception as e:
-                print("Exception: ", e)
+                print(f"Unknown Exception during parsing of {pcap_file}, aborting parsing: ", e)
                 traceback.print_exc()
                 return
         out = pd.DataFrame(
@@ -173,22 +166,19 @@ def pcap_parser(pcap_files, out_file_csv, file_num):
         file_num += 1
 
 
-""" Function: Label Pcap_file utilizng pcap_file CSV and preprocessed UNSW provided CSV file
-    Input: List of Pcap_csv file's directory & File_number (used for labelling the output file)
+def label_UNSW(pcap_csv, UNSW_csv, output_file, file_num):
+    """Function: Label PCAP by combining parsed PCAP CSV with preprocessed CSV.
+    Input: pcap_csv: List of PCAP_csv files
+           UNSW_csv: UNSW preprocessed file
+           output_file: The directory to save the labelled output.
+           file_num: File number that increments to give each labeled CSV a unique name.
     Output: CSV file containing all information from packet along with attack labels"""
 
-# pcap_csv=['G:/UNSW_result/pcap_file_csv_parser/pcap_csv_1.csv','G:/UNSW_result/pcap_file_csv_parser/pcap_csv_2.csv'......]
-## UNSW_csv="E:/UNSW-NB15 Dataset/UNSW-NB15-CSV-Files/Preprocessed-CSV/UNSW-NB15_processed.csv"
-# output_file="G:/UNSW_result/Labelled_pcap_file/"
-# file_num= 1 ; Number of file that you are loading like we are giving 1 and 2 pcap_csv file so this number is 1.
-
-
-def label_UNSW(pcap_csv, UNSW_csv, output_file, file_num):
     logging.info("Reading Pre-processed UNSW CSV_file...")
     df_pre = pd.read_csv(UNSW_csv, low_memory=False)
     df_pre = df_pre[["stime", "ltime", "dur", "srcip", "dstip", "dsport", "sport", "sttl", "proto", "attack_cat", "label"]]
 
-    # Change column name to match pcaps
+    # Rename preprocessed protocol column to match pcap protocol column
     df_pre.rename(columns={"proto": "protocol_m"}, inplace=True)
     # Calculate the max of ltime and (stime + dur) because they aren't consistent
     df_pre["ltime2"] = (df_pre.stime + df_pre.dur).round().astype("int32")
@@ -205,7 +195,7 @@ def label_UNSW(pcap_csv, UNSW_csv, output_file, file_num):
     # Change df_pre datatypes
     df_pre.dsport = d
     df_pre.sport = s
-    # PCAPs for ICMP are all 0 port but flows have other values, so reset all the flows to zero
+    # PCAPs for ICMP are all port 0 but flows have other values, so reset all the preprocessed flows to zero
     df_pre.loc[df_pre.protocol_m == "icmp", ["sport", "dsport"]] = 0
 
     for pcap_file in pcap_csv:
@@ -259,6 +249,10 @@ def label_UNSW(pcap_csv, UNSW_csv, output_file, file_num):
 
 
 def combine_UNSW(in_file_path, out_path):
+    """Function: Concatenate all of the UNSW files together into a single CSV.
+    Input: in_file_path: List of labelled csv files
+           out_path: Directory to save the combined_labelled_pcap_csv.csv file.
+    Output: A single dataframe containing the combined information all of the files."""
     combine = pd.DataFrame(
         columns=[
             "stime",
@@ -284,6 +278,10 @@ def combine_UNSW(in_file_path, out_path):
 
 
 def combine_CICIDS(in_file_path, out_path):
+    """Function: Concatenate all of the CICIDS files together into a single CSV.
+    Input: in_file_path: List of labelled csv files
+           out_path: Directory to save the combined_labelled_pcap_csv.csv file.
+    Output: A single dataframe containing the combined information all of the files."""
     combine = pd.DataFrame(
         columns=[
             "srcip",
@@ -309,6 +307,12 @@ def combine_CICIDS(in_file_path, out_path):
 
 
 def label_CICIDS(pcap_csv, CICIDS_csv, output_file, file_num):
+    """Function: Label PCAP by combining parsed PCAP CSV with preprocessed CSV.
+    Input: pcap_csv: List of PCAP_csv files
+           CICIDS_csv: CICIDS preprocessed file
+           output_file: The directory to save the labelled output.
+           file_num: File number that increments to give each labeled CSV a unique name.
+    Output: CSV file containing all information from packet along with attack labels"""
     logging.info("Reading Pre-processed CICIDS CSV_file...")
     df_pre_csv = pd.read_csv(CICIDS_csv)
     df_pre_csv = df_pre_csv[
