@@ -2,3 +2,4 @@ imblearn >= 0.9.1
 numpy >= 1.19.5
 pandas >= 1.4.2
 scapy >= 2.4.5
+matplotlib >= 3.5.2
