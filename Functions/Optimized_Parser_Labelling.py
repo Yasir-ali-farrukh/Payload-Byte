@@ -271,7 +271,7 @@ def combine_UNSW(in_file_path, out_path):
         df = pd.read_csv(files)
         combine = pd.concat([combine, df], axis=0, ignore_index=True)
         print(combine.shape)
-    csv_out = out_path + "combined_labelled_pcap_csv.csv"
+    csv_out = out_path + "/combined_labelled_pcap_csv.csv"
     logging.info("Exporting_combined_csv_file....")
     combine.to_csv(csv_out, index=False)
     return combine
@@ -300,7 +300,7 @@ def combine_CICIDS(in_file_path, out_path):
         df = pd.read_csv(files)
         combine = pd.concat([combine, df], axis=0, ignore_index=True)
         print(combine.shape)
-    csv_out = out_path + "combined_labelled_pcap_csv.csv"
+    csv_out = out_path + "/combined_labelled_pcap_csv.csv"
     logging.info("Exporting_combined_csv_file....")
     combine.to_csv(csv_out, index=False)
     return combine

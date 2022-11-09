@@ -69,9 +69,8 @@ def UNSW_pipeline(in_dir, out_dir, processed_csv_file):
 
     logging.info("Removing Non-Payload Data Instances (e.g. payload is all zero) .........")
     df_payload.drop(df_payload[df_payload.payload.isnull()].index, inplace=True)
-    df_payload["payload_int"] = df_payload["payload"].apply(int, base=16)
-    df_payload.drop(df_payload[df_payload.payload_int == 0].index, inplace=True)
-    df_payload.pop("payload_int")
+    df_payload = df_payload[~df_payload.payload.str.fullmatch("0+")]
+    
 
     logging.info("Sorting payloads by stime")
     df_payload.sort_values(by=["stime"], inplace=True, ignore_index=True)
@@ -108,7 +107,7 @@ def CICIDS_pipeline(in_dir, out_dir, processed_csv_file):
     pcap_parser(pcap_file_list, out_file, 1)
     logging.info("Parsing Completed.......")
 
-    pcap_csv = glob.glob(out_file + "/labelled_pcap_csv_*.csv")
+    pcap_csv = glob.glob(out_file + "/pcap_csv_*.csv")
     logging.info("Labeling PCAP Files .........")
     output_file = out_dir + "/labelled_pcap_file/"
     os.makedirs(output_file, exist_ok=True)
@@ -116,16 +115,14 @@ def CICIDS_pipeline(in_dir, out_dir, processed_csv_file):
     logging.info("Labeling Completed.")
 
     logging.info("Combining labelled files.......")
-    in_file = glob.glob(output_file + "/pcap_*.csv")
+    in_file = glob.glob(output_file + "/labelled_pcap_csv_*.csv")
     df_payload = combine_CICIDS(in_file, out_dir)
 
     logging.info("Total Shape of Combined Data Before Processing is: %s", df_payload.shape)
     logging.info("Removing Non-Payload Data Instances (e.g. payload is all zero) .........")
     df_payload.drop(df_payload[df_payload.payload.isnull()].index, inplace=True)
-    df_payload["payload_int"] = df_payload["payload"].apply(int, base=16)
-    df_payload.drop(df_payload[df_payload.payload_int == 0].index, inplace=True)
-    df_payload.pop("payload_int")
-
+    df_payload = df_payload[~df_payload.payload.str.fullmatch("0+")]
+    
     logging.info("Sorting payloads by stime")
     df_payload.sort_values(by=["stime"], inplace=True, ignore_index=True)
     df_payload.sttl = df_payload.sttl.astype("int32")
