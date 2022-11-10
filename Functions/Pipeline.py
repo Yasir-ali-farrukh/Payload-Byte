@@ -46,6 +46,7 @@ def UNSW_pipeline(in_dir, out_dir, processed_csv_file):
 
     logging.info("Files found. Initiating PCAP Parsing.......")
     pcap_file_list = sorted(glob.glob(in_dir + "/*/*.pcap"), key=numeric_ordering)
+    logging.info(f"Expected 80 files, found {len(pcap_file_list)} files.")
     out_file = out_dir + "/pcap_file_csv_parser/"
     os.makedirs(out_file, exist_ok=True)
     logging.info("Parsing UNSW PCAP files .........")
@@ -54,6 +55,7 @@ def UNSW_pipeline(in_dir, out_dir, processed_csv_file):
 
     logging.info("Labeling UNSW PCAP files.......")
     pcap_csv = sorted(glob.glob(out_file + "/pcap_csv_*.csv"), key=numeric_ordering)
+    logging.info(f"Expected 80 files, found {len(pcap_csv)} files.")
     output_file = out_dir + "/labelled_pcap_file/"
     os.makedirs(output_file, exist_ok=True)
     label_UNSW(pcap_csv, processed_csv_file, output_file, 1)
@@ -61,6 +63,7 @@ def UNSW_pipeline(in_dir, out_dir, processed_csv_file):
 
     logging.info("Combining labelled files.......")
     in_file = sorted(glob.glob(output_file + "labelled_pcap_csv_*.csv"), key=numeric_ordering)
+    logging.info(f"Expected 80 files, found {len(in_file)} files.")
     df_payload = combine_UNSW(in_file, out_dir)
 
     logging.info("Total Shape of Combined Data Before Processing is: %s", df_payload.shape)
@@ -101,6 +104,7 @@ def CICIDS_pipeline(in_dir, out_dir, processed_csv_file):
 
     logging.info("Files found. Initiating PCAP Parsing.......")
     pcap_file_list = glob.glob(in_dir + "/*-WorkingHours.pcap")
+    logging.info(f"Expected 5 files, found {len(pcap_file_list)} files.")
     out_file = out_dir + "/pcap_file_csv_parser/"
     os.makedirs(out_file, exist_ok=True)
     logging.info("Parsing CICIDS PCAP Files .........")
@@ -108,6 +112,7 @@ def CICIDS_pipeline(in_dir, out_dir, processed_csv_file):
     logging.info("Parsing Completed.......")
 
     pcap_csv = glob.glob(out_file + "/pcap_csv_*.csv")
+    logging.info(f"Expected 5 files, found {len(pcap_csv)} files.")
     logging.info("Labeling PCAP Files .........")
     output_file = out_dir + "/labelled_pcap_file/"
     os.makedirs(output_file, exist_ok=True)
@@ -116,6 +121,7 @@ def CICIDS_pipeline(in_dir, out_dir, processed_csv_file):
 
     logging.info("Combining labelled files.......")
     in_file = glob.glob(output_file + "/labelled_pcap_csv_*.csv")
+    logging.info(f"Expected 5 files, found {len(in_file)} files.")
     df_payload = combine_CICIDS(in_file, out_dir)
 
     logging.info("Total Shape of Combined Data Before Processing is: %s", df_payload.shape)
