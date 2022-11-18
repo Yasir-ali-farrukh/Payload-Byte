@@ -93,10 +93,13 @@ def pcap_parser(pcap_files, out_file_csv, file_num):
                     payload_protocols = [sc.UDP, sc.TCP, sc.ICMP]
                     payload_protocol = next((element for element in payload_protocols if element in f), None)
 
-                    if payload_protocol:
-                        payload = bytes(f[payload_protocol].payload).hex()
-                    else:
-                        payload = bytes(f.load).hex()
+                    try:
+                        if payload_protocol:
+                            payload = bytes(f[payload_protocol].payload).hex()
+                        else:
+                            payload = bytes(f.load).hex()
+                    except AttributeError:
+                        payload = '0'
 
                     try:
                         sport = f.sport
