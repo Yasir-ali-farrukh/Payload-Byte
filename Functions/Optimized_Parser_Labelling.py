@@ -165,7 +165,8 @@ def pcap_parser(pcap_files, out_file_csv, file_num):
         )
 
         out["stime"] = out["stime"].astype(float).round().astype(int)
-
+        out["t_delta"] = out["stime"] - out["stime"].shift(1)
+        out.t_delta[0] = 0
         logging.info(f"Skipped {skipped_counter} unparsable packets.")
         logging.info("Exporting CSV File#%s", file_num)
         csv_file = out_file_csv + "pcap_csv_" + str(file_num) + ".csv"
@@ -185,7 +186,7 @@ def label_UNSW(pcap_csv, UNSW_csv, output_file, file_num):
 
     logging.info("Reading Pre-processed UNSW CSV_file...")
     df_flow = pd.read_csv(UNSW_csv, low_memory=False)
-    df_flow = df_flow[["stime", "ltime", "dur", "srcip", "dstip", "dsport", "sport", "sttl", "proto", "attack_cat", "label"]]
+    df_flow = df_flow[["stime", "t_delta", "ltime", "dur", "srcip", "dstip", "dsport", "sport", "sttl", "proto", "attack_cat", "label"]]
 
     # Rename preprocessed protocol column to match pcap protocol column
     df_flow.rename(columns={"proto": "protocol_m"}, inplace=True)
@@ -233,16 +234,6 @@ def label_UNSW(pcap_csv, UNSW_csv, output_file, file_num):
         # Drop any rows that do not have match flow times
         combine = combine[(combine["stime_flow"] <= combine["stime"]) & (combine["stime"] <= combine["ltime_max"])]
 
-        # Merge any duplicate packets with different attack categories
-        combine = (
-            combine.groupby(["stime", "srcip", "sport", "dstip", "dsport", "protocol_m", "payload", "total_len", "sttl", "label"])["attack_cat"]
-            .apply(set)
-            .apply(list)
-            .apply(sorted)
-            .apply(",".join)
-            .reset_index()
-        )
-
         combine.drop_duplicates(inplace=True)
 
         print("*********Labelled_File_%s_Protocols*************" % file_num)
@@ -262,6 +253,7 @@ def combine_UNSW(in_file_path, out_path):
     combine = pd.DataFrame(
         columns=[
             "stime",
+            "t_delta",
             "srcip",
             "sport",
             "dstip",
@@ -290,6 +282,8 @@ def combine_CICIDS(in_file_path, out_path):
     Output: A single dataframe containing the combined information all of the files."""
     combine = pd.DataFrame(
         columns=[
+            "stime",
+            "t_delta",
             "srcip",
             "sport",
             "dstip",
@@ -400,17 +394,6 @@ def label_CICIDS(pcap_csv, CICIDS_csv, output_file, file_num):
             & (combine["stime"] <= combine["stime_flow"] + combine["offset"] + combine["duration"] / 1e6)
         ]
 
-        # There may be duplicate rows for each packet that matched multiple flows, so this will de-duplicate
-        # by grouping together rows that are identical in every column except for label, and then recording
-        # each unique label (set operation removes duplicate labels).
-        combine = (
-            combine.groupby(["stime", "srcip", "dstip", "dsport", "sport", "protocol_m", "payload", "total_len", "sttl"])["label"]
-            .apply(set)
-            .apply(list)
-            .apply(sorted)
-            .apply(",".join)
-            .reset_index()
-        )
         # Rename to attack_cat for consistency with UNSW
         combine.rename(columns={"label": "attack_cat"}, inplace=True)
 

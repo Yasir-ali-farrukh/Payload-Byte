@@ -3,7 +3,6 @@ import os
 import pandas as pd
 import numpy as np
 import logging
-from sklearn.preprocessing import LabelEncoder
 import glob
 import re
 import math
@@ -73,7 +72,6 @@ def UNSW_pipeline(in_dir, out_dir, processed_csv_file):
     logging.info("Removing Non-Payload Data Instances (e.g. payload is all zero) .........")
     df_payload.drop(df_payload[df_payload.payload.isnull()].index, inplace=True)
     df_payload = df_payload[~df_payload.payload.str.fullmatch("0+")]
-    
 
     logging.info("Sorting payloads by stime")
     df_payload.sort_values(by=["stime"], inplace=True, ignore_index=True)
@@ -128,7 +126,7 @@ def CICIDS_pipeline(in_dir, out_dir, processed_csv_file):
     logging.info("Removing Non-Payload Data Instances (e.g. payload is all zero) .........")
     df_payload.drop(df_payload[df_payload.payload.isnull()].index, inplace=True)
     df_payload = df_payload[~df_payload.payload.str.fullmatch("0+")]
-    
+
     logging.info("Sorting payloads by stime")
     df_payload.sort_values(by=["stime"], inplace=True, ignore_index=True)
     df_payload.sttl = df_payload.sttl.astype("int32")
@@ -147,61 +145,6 @@ def CICIDS_pipeline(in_dir, out_dir, processed_csv_file):
 
 
 ##################################################################################
-
-
-def payload_to_bytes(df, dim):
-    """Convert Labelled PCAP file's payload data(hex) into byte (int)
-    Input:  df: Labelled Pcap file Data in panda Dataframe
-            dim: The size of the payload
-    Output: X: Payload data in int form in range of 0-255 in dim Columns
-            Y: Attack Category for each data"""
-    df_temp = df
-    X = df_temp["payload"].to_numpy().reshape((-1, 1))
-    X = np.apply_along_axis(payload_transform, 1, X, dim)
-    y = np.array(df_temp["label"]).reshape((-1, 1))
-    return X, y
-
-
-def payload_transform(x, dims):
-    byte_array = bytes.fromhex(x[0])
-    byte_lst = list(byte_array)
-    if len(byte_lst) < dims:
-        output = np.pad(byte_lst, (0, dims - len(byte_lst)), "constant")
-    else:
-        output = np.array(byte_lst[0:dims].copy())
-    output = np.abs(output.astype("int32"))
-    # output = np.abs(output.astype(float)) / 255
-    # return output.astype(float)
-    return output
-
-
-##################################################################################
-
-
-def transform(df, out_dir):
-    """Encode the protocol, payload, ttl, total_length, and duration
-    Input:  df: Labelled Pcap file Data in panda Dataframe
-            dim: The size of the payload
-    Output: X: Payload data in int form in range of 0-255 in dim Columns
-            Y: Attack Category for each data"""
-    le = LabelEncoder()
-    df["protocol_m"] = le.fit_transform(df["protocol_m"])
-    X_tr, Ytrain = payload_to_bytes(df, 1500)
-    X_tr = np.column_stack((X_tr, np.array(df.iloc[:, "ttl"])))
-    X_tr = np.column_stack((X_tr, np.array(df.iloc[:, "total_len"])))
-    X_tr = np.column_stack((X_tr, np.array(df.iloc[:, "protocol"])))
-    X_tr = np.column_stack((X_tr, np.array(df.iloc[:, "t_delta"])))
-    name = []
-    for x in range(1, 1501):
-        name.append("payload_byte_" + str(x))
-    name.append("ttl")
-    name.append("total_len")
-    name.append("protocol")
-    name.append("t_delta")
-    final = pd.DataFrame(X_tr, columns=name)
-    final["label"] = Ytrain
-    final.to_csv(out_dir + "Converted_data.csv", index=False)
-    return final
 
 
 file_pattern = re.compile(r".*?(\d+).*?")
