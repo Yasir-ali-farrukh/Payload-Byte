@@ -99,7 +99,7 @@ def pcap_parser(pcap_files, out_file_csv, file_num):
                         else:
                             payload = bytes(f.load).hex()
                     except AttributeError:
-                        payload = '0'
+                        payload = "0"
 
                     try:
                         sport = f.sport
@@ -189,7 +189,7 @@ def label_UNSW(pcap_csv, UNSW_csv, output_file, file_num):
 
     logging.info("Reading Pre-processed UNSW CSV_file...")
     df_flow = pd.read_csv(UNSW_csv, low_memory=False)
-    df_flow = df_flow[["stime", "t_delta", "ltime", "dur", "srcip", "dstip", "dsport", "sport", "sttl", "proto", "attack_cat", "label"]]
+    df_flow = df_flow[["stime", "ltime", "dur", "srcip", "dstip", "dsport", "sport", "sttl", "proto", "attack_cat", "label"]]
 
     # Rename preprocessed protocol column to match pcap protocol column
     df_flow.rename(columns={"proto": "protocol_m"}, inplace=True)
@@ -253,21 +253,7 @@ def combine_UNSW(in_file_path, out_path):
     Input: in_file_path: List of labelled csv files
            out_path: Directory to save the combined_labelled_pcap_csv.csv file.
     Output: A single dataframe containing the combined information all of the files."""
-    combine = pd.DataFrame(
-        columns=[
-            "stime",
-            "t_delta",
-            "srcip",
-            "sport",
-            "dstip",
-            "dsport",
-            "protocol_m",
-            "payload",
-            "total_len",
-            "label",
-            "attack_cat",
-        ]
-    )
+    combine = pd.DataFrame()
     for files in in_file_path:
         df = pd.read_csv(files)
         combine = pd.concat([combine, df], axis=0, ignore_index=True)
@@ -283,22 +269,7 @@ def combine_CICIDS(in_file_path, out_path):
     Input: in_file_path: List of labelled csv files
            out_path: Directory to save the combined_labelled_pcap_csv.csv file.
     Output: A single dataframe containing the combined information all of the files."""
-    combine = pd.DataFrame(
-        columns=[
-            "stime",
-            "t_delta",
-            "srcip",
-            "sport",
-            "dstip",
-            "dsport",
-            "protocol_m",
-            "sttl",
-            "total_len",
-            "payload",
-            "stime",
-            "label",
-        ]
-    )
+    combine = pd.DataFrame()
     for files in in_file_path:
         df = pd.read_csv(files)
         combine = pd.concat([combine, df], axis=0, ignore_index=True)
