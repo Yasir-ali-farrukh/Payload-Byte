@@ -2,6 +2,8 @@
 
 <meta name="google-site-verification" content="5WK343ADbdgrsx0UqyrJwGNjU5xKzLWjmNP7f502qWo" />
 
+[![DOI](https://zenodo.org/badge/524051176.svg)](https://zenodo.org/badge/latestdoi/524051176)
+
 <p align="justify"> Payload-Byte is a tool for extracting and labeling packet capture (Pcap) files of modern network intrusion detection datasets.</p>
 
 <p align="justify"> Since packet-based approaches for Network Intrusion Detection (NIDS) suffer from a lack of standardization, resulting in incomparability and reproducibility issues. Moreover, there are no standard labeled datasets available unlike flow-based datasets, forcing researchers to follow bespoke labeling pipelines for individual approaches. Without a standardized baseline, proposed approaches cannot be compared and evaluated with each other. One cannot gauge whether the proposed approach is a methodological advancement or is just being benefited from the proprietary interpretation of the dataset. Payload-Byte addresses the comparability and reproducibility issues by extracting and labeling network packets according to the available meta-data. </p>
