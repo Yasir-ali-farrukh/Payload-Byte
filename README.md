@@ -24,15 +24,46 @@ For the ease of future researchers, we have included the processed and labeled p
 2. The other approach is to utilize the functions seperately which is being illustrated in `Individual_approach` folder (UNDER CONSTRUCTION).
 
 ## Citation 
- If you are using our tool, kindly cite our related preprint  [paper](https://www.techrxiv.org/articles/preprint/Payload-Byte_A_Tool_for_Extracting_and_Labeling_Packet_Capture_Files_of_Modern_Network_Intrusion_Detection_Datasets/20714221) which outlines the details of the tools and its processing. 
+ If you are using our tool, kindly cite our related papers  [paper](https://www.techrxiv.org/articles/preprint/Payload-Byte_A_Tool_for_Extracting_and_Labeling_Packet_Capture_Files_of_Modern_Network_Intrusion_Detection_Datasets/20714221) which outlines the details of the tools and its processing. 
  
  ```yaml
-@article{Payload,  
-author = "Yasir Ali Farrukh and Irfan Khan and Syed Wali and David Bierbrauer and John A. Pavlik and Nathaniel D. Bastian",  
-title = "{Payload-Byte: A Tool for Extracting and Labeling Packet Capture Files of Modern Network Intrusion Detection Datasets}",
-journal = "Proceedings of the 9th IEEE/ACM International Conference on Big Data Computing, Applications and Technologies (BDCAT2022)",
-year = "2022",  
-month = "12" 
-}
+@INPROCEEDINGS{Payload-Byte,
+  author={Farrukh, Yasir Ali and Khan, Irfan and Wali, Syed and Bierbrauer, David and Pavlik, John A. and Bastian, Nathaniel D.},
+  booktitle={2022 IEEE/ACM International Conference on Big Data Computing, Applications and Technologies (BDCAT)}, 
+  title={Payload-Byte: A Tool for Extracting and Labeling Packet Capture Files of Modern Network Intrusion Detection Datasets}, 
+  year={2022},
+  pages={58-67},
+  doi={10.1109/BDCAT56447.2022.00015}}
 ```
- 
+Furthermore, our recent publication provides additional insights on how to effectively utilize payload information for classification.
+
+
+[Senet-I: An approach for detecting network intrusions through serialized network traffic images](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4370422))
+
+ ```yaml
+@article{SeNet-I,
+title = {SeNet-I: An approach for detecting network intrusions through serialized network traffic images},
+journal = {Engineering Applications of Artificial Intelligence},
+volume = {126},
+pages = {107169},
+year = {2023},
+issn = {0952-1976},
+doi = {https://doi.org/10.1016/j.engappai.2023.107169},
+url = {https://www.sciencedirect.com/science/article/pii/S0952197623013532},
+author = {Yasir Ali Farrukh and Syed Wali and Irfan Khan and Nathaniel D. Bastian}}
+```
+
+[AIS-NIDS: An intelligent and self-sustaining network intrusion detection system](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4635437)
+
+ ```yaml
+@article{AIS-NIDS,
+title = {AIS-NIDS: An intelligent and self-sustaining network intrusion detection system},
+journal = {Computers & Security},
+volume = {144},
+pages = {103982},
+year = {2024},
+issn = {0167-4048},
+doi = {https://doi.org/10.1016/j.cose.2024.103982},
+url = {https://www.sciencedirect.com/science/article/pii/S0167404824002876},
+author = {Yasir Ali Farrukh and Syed Wali and Irfan Khan and Nathaniel D. Bastian}}
+```
