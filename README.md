@@ -38,7 +38,7 @@ For the ease of future researchers, we have included the processed and labeled p
 Furthermore, our recent publication provides additional insights on how to effectively utilize payload information for classification.
 
 
-[Senet-I: An approach for detecting network intrusions through serialized network traffic images](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4370422))
+[SeNet-I: An approach for detecting network intrusions through serialized network traffic images](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4370422))
 
  ```yaml
 @article{SeNet-I,
